@@ -11,8 +11,8 @@ namespace Artificial_Neural_Network {
 			signal.AddBias();
 
 			for(int i = 0; i < layer.Count; i++) {
-				result[i] = signal * layer[i];
-				//result[i] = Node.GetWeightSum(signal, layer[i]);
+				//result[i] = signal * layer[i];
+				result[i] = layer[i].GetWeightSum(signal);
 			}
 
 			signal.RemoveBias();
@@ -20,7 +20,7 @@ namespace Artificial_Neural_Network {
 			return result;
 		}
 
-		public static Signal GetWeightSum(Signal signal, Layer layer) {
+		/*public static Signal GetWeightSum(Signal signal, Layer layer) {
 			Signal result = new Signal(layer.Count);
 
 			signal.AddBias();
@@ -32,7 +32,7 @@ namespace Artificial_Neural_Network {
 			signal.RemoveBias();
 
 			return result;
-		}
+		}*/
 
 		public override String ToString() {
 			String toString = "{";
