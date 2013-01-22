@@ -36,8 +36,8 @@ namespace Artificial_Neural_Network {
 			signalT.Add(1.0);
 
 			trainingSet.Add(signalFF, signalF);
-			trainingSet.Add(signalFT, signalF);
-			trainingSet.Add(signalTF, signalF);
+			trainingSet.Add(signalFT, signalT);
+			trainingSet.Add(signalTF, signalT);
 			trainingSet.Add(signalTT, signalT);
 
 			network.Train(trainingSet);

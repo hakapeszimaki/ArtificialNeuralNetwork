@@ -6,16 +6,9 @@ using System.Text;
 namespace Artificial_Neural_Network {
 	class Network : List<Layer> {
 		public static Random random = new Random();
-		//private double[][] error;
-
-		public Network() { }
+		private double[][] error;
 
 		public bool Train(Dictionary<Signal, Signal> trainingSet) {
-			/*error = new double[][] {
-				new double[this[0].Count],
-				new double[this[1].Count]
-			};*/
-
 			int iteration = 0;
 			double trainingSetError = 0;
 
@@ -32,8 +25,6 @@ namespace Artificial_Neural_Network {
 
 				iteration++;
 
-				
-
 			} while((trainingSetError > 0.001) && (iteration < 10000));
 
 			Console.WriteLine("Network after training:  " + this);
@@ -46,81 +37,62 @@ namespace Artificial_Neural_Network {
 		public double OnlineTraining(KeyValuePair<Signal, Signal> trainingData) {
 			double learningRate = 0.5;
 
-			// Nullifying errors
-			/*for(int i = 0; i < error.Length; i++) {
-				for(int j = 0; j < error[i].Length; j++) {
-					error[i][j] = 0;
-				}
-			}*/
-			for(int i = 0; i < this.Count; i++) {
-				for(int j = 0; j < this[i].Count; j++) {
-					this[i][j].Error = 0;
-				}
-			}
+			error = new double[][] {
+				new double[this[0].Count],
+				new double[this[1].Count]
+			};
 			
 			// Calculating actual output and processing signal
-			Signal output = trainingData.Key * this;
-			//List<Signal> weightedSum = Network.GetWeightSum(trainingData.Key, this);
+			List<Signal> weightedSum = GetWeightSum(trainingData.Key, this);
+
+			List<List<KeyValuePair<double, double>>> activatedWeightedSum = new List<List<KeyValuePair<double, double>>>();
+
+			int i, j;
+
+			for(i = 0; i < weightedSum.Count; i++) {
+				activatedWeightedSum.Add(new List<KeyValuePair<double, double>>());
+				for(j = 0; j < weightedSum[i].Count; j++) {
+					activatedWeightedSum[i].Add(new KeyValuePair<double, double>(LogisticFunction(weightedSum[i][j]), LogisticFunctionDerivative(weightedSum[i][j])));
+				}
+			}
 
 			// Calculating errors
 			// * output layer
-			for(int i = 0; i < this[1].Count; i++) {
-				this[1][i].Error = output[i] * (1 - output[i]) * (trainingData.Value[i] - output[i]);
-				//error[1][i] = output[i] * (1 - output[i]) * (trainingData.Value[i] - output[i]);
-				//error[1][i] = LogisticFunctionDerivative(weightedSum[1][i]) * (trainingData.Value[i] - LogisticFunction(weightedSum[1][i]));
+			for(i = 0; i < this[1].Count; i++) {
+				error[1][i] = activatedWeightedSum[1][i].Value * (trainingData.Value[i] - activatedWeightedSum[1][i].Key);
 			}
 
 			// * hidden layer
-			for(int i = 0; i < this[0].Count; i++) {
-				for(int j = 0; j < this[1].Count; j++) {
-					this[0][i].Error += this[1][j].Error * this[1][j][i+1] * LogisticFunctionDerivative(this[0][i].WeightedSum);
-					//error[0][i] += error[1][j] * this[1][j][i+1] * LogisticFunctionDerivative(weightedSum[i]);
-					//error[0][i] += error[1][j] * this[1][j][i+1] * LogisticFunctionDerivative(weightedSum[0][i]);
+			for(i = 0; i < this[0].Count; i++) {
+				for(j = 0; j < this[1].Count; j++) {
+					error[0][i] += error[1][j] * this[1][j][i+1] * activatedWeightedSum[0][i].Value;
 				}
 			}
 
 			// Updating weights
 			// * hidden layer
-			for(int i = 0; i < this[0].Count; i++) {
-				this[0][i][0] += learningRate * this[0][i].Error;
-				//this[0][i][0] += learningRate * error[0][i];
+			for(i = 0; i < this[0].Count; i++) {
+				this[0][i][0] += learningRate * error[0][i];
 
-				for(int j = 0; j < this[0][i].Count - 1; j++) {
-					this[0][i][j + 1] += learningRate * this[0][i].Error * trainingData.Key[j];
-					//this[0][i][j + 1] += learningRate * error[0][i] * trainingData.Key[j];
+				for(j = 0; j < this[0][i].Count - 1; j++) {
+					this[0][i][j + 1] += learningRate * error[0][i] * trainingData.Key[j];
 				}
 			}
 
 			// * output layer
-			for(int i = 0; i < this[1].Count; i++) {
-				this[1][i][0] += learningRate * this[1][i].Error;
-				//this[1][i][0] += learningRate * error[1][i];
+			for(i = 0; i < this[1].Count; i++) {
+				this[1][i][0] += learningRate * error[1][i];
 
-				for(int j = 0; j < this[1][i].Count - 1; j++) {
-					this[1][i][j + 1] += learningRate * this[1][i].Error * Network.LogisticFunction(this[0][j].WeightedSum);
-					//this[1][i][j + 1] += learningRate * error[1][i] * Network.LogisticFunction(weightedSum[j]);
-					//this[1][i][j + 1] += learningRate * error[1][i] * Network.LogisticFunction(weightedSum[0][j]);
-				}
-			}
-
-			// Nullifying errors
-			/*for(int i = 0; i < error.Length; i++) {
-				for(int j = 0; j < error[i].Length; j++) {
-					error[i][j] = 0;
-				}
-			}*/
-			for(int i = 0; i < this.Count; i++) {
-				for(int j = 0; j < this[i].Count; j++) {
-					this[i][j].Error = 0;
+				for(j = 0; j < this[1][i].Count - 1; j++) {
+					this[1][i][j + 1] += learningRate * error[1][i] * activatedWeightedSum[0][j].Key;
 				}
 			}
 
 			// Calculating TrainingData cost
 			double trainingDataError = 0;
 
-			for(int i = 0; i < this[1].Count; i++) {
-				trainingDataError += Math.Pow(trainingData.Value[i] - output[i], 2);
-				//trainingDataError += Math.Pow(trainingData.Value[i] - LogisticFunction(weightedSum[1][i]), 2);
+			for(i = 0; i < this[1].Count; i++) {
+				trainingDataError += Math.Pow(trainingData.Value[i] - activatedWeightedSum[1][i].Key, 2);
 			}
 
 			return trainingDataError = 0.5 * trainingDataError;
@@ -134,15 +106,20 @@ namespace Artificial_Neural_Network {
 			return signal;
 		}
 
-		/*public static List<Signal> GetWeightSum(Signal signal, Network network) {
+		public static List<Signal> GetWeightSum(Signal signal, Network network) {
 			List<Signal> weightSums = new List<Signal>();
 
 			for(int i = 0; i < network.Count; i++) {
 				weightSums.Add(Layer.GetWeightSum(signal, network[i]));
+
+				if(i == network.Count - 1)
+					break;
+				
+				signal = signal * network[i];
 			}
 
 			return weightSums;
-		}*/
+		}
 
 		public static double LogisticFunction(double value) {
 			return 1/(1 + Math.Exp(-value));
