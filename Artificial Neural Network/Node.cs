@@ -12,10 +12,10 @@ namespace Artificial_Neural_Network {
 		}
 
 		public static double operator *(Signal signal, Node node) {
-			return Network.LogisticFunction(GetWeightSum(signal, node));
+			return Network.LogisticFunction(GetWeightedSum(signal, node));
 		}
 
-		public static double GetWeightSum(Signal signal, Node node) {
+		public static double GetWeightedSum(Signal signal, Node node) {
 			if(node.Count != signal.Count)
 				Console.WriteLine("!!!");
 

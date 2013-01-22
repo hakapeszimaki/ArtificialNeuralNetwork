@@ -6,26 +6,19 @@ namespace Artificial_Neural_Network {
 	class Layer : List<Node> {
 
 		public static Signal operator *(Signal signal, Layer layer) {
-			Signal result = new Signal(layer.Count);
-
-			signal.AddBias();
-
-			for(int i = 0; i < layer.Count; i++) {
-				result[i] = signal * layer[i];
-			}
-
-			signal.RemoveBias();
-
-			return result;
+			return GetWeightedSum(signal, layer, false);
 		}
 
-		public static Signal GetWeightSum(Signal signal, Layer layer) {
+		public static Signal GetWeightedSum(Signal signal, Layer layer, bool weightedSum = true) {
 			Signal result = new Signal(layer.Count);
 
 			signal.AddBias();
 
 			for(int i = 0; i < layer.Count; i++) {
-				result[i] = Node.GetWeightSum(signal, layer[i]);
+				if(weightedSum)
+					result[i] = Node.GetWeightedSum(signal, layer[i]);
+				else
+					result[i] = signal * layer[i];
 			}
 
 			signal.RemoveBias();
