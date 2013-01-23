@@ -12,6 +12,10 @@ namespace Artificial_Neural_Network {
 			}
 		}
 
+		public Signal(Signal signal) {
+			this.AddRange(signal);
+		}
+
 		public void AddBias() {
 			this.Insert(0, 1);
 		}

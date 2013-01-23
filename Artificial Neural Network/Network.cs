@@ -41,9 +41,9 @@ namespace Artificial_Neural_Network {
 				new double[this[0].Count],
 				new double[this[1].Count]
 			};
-			
-			List<List<KeyValuePair<double, double>>> output = activateWeightedSum(GetWeightedSum(trainingData.Key, this));
 
+			List<List<KeyValuePair<double, double>>> output = getActivatedSignal(trainingData.Key, this);
+			
 			int i, j;
 
 			// Calculating errors
@@ -96,34 +96,29 @@ namespace Artificial_Neural_Network {
 			return signal;
 		}
 
-		private static List<Signal> GetWeightedSum(Signal signal, Network network) {
-			List<Signal> weightSums = new List<Signal>();
+		private static List<List<KeyValuePair<double, double>>> getActivatedSignal(Signal signal, Network network) {
+			List<List<KeyValuePair<double, double>>> activatedSignal = new List<List<KeyValuePair<double, double>>>();
+
+			List<Signal> weightedSum = new List<Signal>();
+
+			Signal input = new Signal(signal);
 
 			for(int i = 0; i < network.Count; i++) {
-				weightSums.Add(Layer.GetWeightedSum(signal, network[i]));
+				weightedSum.Add(Layer.GetWeightedSum(input, network[i]));
 
-				if(i == network.Count - 1)
-					break;
-				
-				signal = signal * network[i];
-			}
+				activatedSignal.Add(new List<KeyValuePair<double, double>>());
 
-			return weightSums;
-		}
+				for(int j = 0; j < weightedSum[i].Count; j++) {
+					activatedSignal[i].Add(new KeyValuePair<double, double>(LogisticFunction(weightedSum[i][j]), LogisticFunctionDerivative(weightedSum[i][j])));
+				}
 
-		private List<List<KeyValuePair<double, double>>> activateWeightedSum(List<Signal> weightedSum) {
-			int i, j;
-
-			List<List<KeyValuePair<double, double>>> activatedWeightedSum = new List<List<KeyValuePair<double, double>>>();
-			
-			for(i = 0; i < weightedSum.Count; i++) {
-				activatedWeightedSum.Add(new List<KeyValuePair<double, double>>());
-				for(j = 0; j < weightedSum[i].Count; j++) {
-					activatedWeightedSum[i].Add(new KeyValuePair<double, double>(LogisticFunction(weightedSum[i][j]), LogisticFunctionDerivative(weightedSum[i][j])));
+				input.Clear();
+				foreach(KeyValuePair<double, double> pair in activatedSignal[i]) {
+					input.Add(pair.Key);
 				}
 			}
-
-			return activatedWeightedSum;
+			
+			return activatedSignal;
 		}
 
 		public static double LogisticFunction(double value) {
